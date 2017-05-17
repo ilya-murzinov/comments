@@ -3,15 +3,16 @@
 
 module API where
 
-import           Control.Monad.IO.Class (liftIO)
-import           Database.Persist
-import           Database.Persist.Sql   (ConnectionPool, runSqlPersistMPool)
-
-import           Models
+import           Database.Persist.Sql (ConnectionPool)
 import           Servant
 
-type GetCommentsEndpoint = Capture "threadId" ThreadId :> Get  '[JSON] [Comment]
-type PostCommentEndpoint = Capture "threadId" ThreadId :> ReqBody '[JSON] Comment :> PostCreated '[JSON] ()
+import           Persistence
+import           Types
+
+type TID = Capture "threadId" ThreadId
+type GetCommentsEndpoint = TID :> Get '[JSON] [Comment]
+type PostCommentEndpoint = TID :> ReqBody '[JSON] PartialComment :>
+                                  PostCreated '[JSON] Comment
 
 type API = "api" :> "comments" :>
   (
@@ -22,15 +23,11 @@ type API = "api" :> "comments" :>
 api :: Proxy API
 api = Proxy
 
-getComments :: ConnectionPool -> ThreadId -> Handler [Comment]
-getComments pool tid = liftIO $ flip runSqlPersistMPool pool $ do
-  mComments <- selectList [CommentThreadId ==. tid] []
-  return $ entityVal <$> mComments
+getCommentsEndpoint :: ConnectionPool -> ThreadId -> Handler [Comment]
+getCommentsEndpoint = getComments
 
-addComment :: ConnectionPool -> ThreadId -> Comment -> Handler ()
-addComment pool tid c = liftIO $ flip runSqlPersistMPool pool $ do
-  _ <- insert c{commentThreadId = tid}
-  return ()
+addCommentEndpoint :: ConnectionPool -> ThreadId -> PartialComment -> Handler Comment
+addCommentEndpoint = addComment
 
 server :: ConnectionPool -> Server API
-server pool = getComments pool :<|> addComment pool
+server pool = getCommentsEndpoint pool :<|> addCommentEndpoint pool

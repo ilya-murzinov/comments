@@ -11,7 +11,7 @@ import           Servant                  (serve)
 import           System.Directory         (createDirectoryIfMissing)
 
 import           API
-import           Models
+import           Persistence
 import           Types
 
 main :: IO ()
@@ -21,18 +21,18 @@ main = do
     flip runSqlPersistMPool pool $ do
       runMigration migrateAll
 
-      johnId <- insert $ User "John Doe" (Email "asd@asd.asd")
+      johnId <- insert $ PersistentUser "John Doe" (Email "asd@asd.asd")
 
       john <- get johnId
-      liftIO $ print (john :: Maybe User)
+      liftIO $ print (john :: Maybe PersistentUser)
 
       now <- liftIO getCurrentTime
-      threadId <- insert $ Thread "Thread 1" now
+      threadId <- insert $ PersistentThread "Thread 1" now
 
-      commentId <- insert $ Comment johnId threadId now Nothing "title" "text"
+      commentId <- insert $ PersistentComment johnId threadId now Nothing "title" "text"
 
       c <- get commentId
-      liftIO $ print (c :: Maybe Comment)
+      liftIO $ print (c :: Maybe PersistentComment)
 
     run 8080 $ app pool
   where app pool = serve api $ server pool
