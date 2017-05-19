@@ -5,6 +5,8 @@ general:
   branches:
     only:
       - master
+  artifacts:
+    - $(stack path --local-install-root)/bin/hcomments
 
 dependencies:
   cache_directories:
