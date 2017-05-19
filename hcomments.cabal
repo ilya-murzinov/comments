@@ -1,8 +1,8 @@
-name:                comments
+name:                hcomments
 version:             0.1.0
 synopsis:
 description:
-homepage:            https://github.com/ilya-murzinov/comments
+homepage:            https://github.com/ilya-murzinov/hcomments
 license:             MIT
 license-file:        LICENSE
 author:              Ilya Murzinov
@@ -13,7 +13,7 @@ build-type:          Simple
 extra-source-files:  README.md
 cabal-version:       >=1.10
 
-executable comments
+executable hcomments
   hs-source-dirs:      app
   main-is:             Main.hs
   other-modules:       API
@@ -40,4 +40,4 @@ executable comments
 
 source-repository head
   type:     git
-  location: https://github.com/ilya-murzinov/comments
+  location: git@github.com:ilya-murzinov/hcomments.git
