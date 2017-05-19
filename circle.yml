@@ -22,4 +22,6 @@ dependencies:
 test:
   override:
     - stack test
+  post:
+    - cp $(stack path --local-install-root)/bin/hcomments $CIRCLE_ARTIFACTS
     
