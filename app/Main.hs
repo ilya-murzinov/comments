@@ -1,38 +1,31 @@
 module Main where
 
-import           Control.Monad.IO.Class   (liftIO)
-import           Control.Monad.Logger
-import           Data.Time.Clock
-import           Database.Persist
-import           Database.Persist.Sqlite
-import           Database.Persist.TH      ()
+import           Control.Monad.Logger     (runStderrLoggingT)
+import           Data.Maybe               (fromMaybe)
+import           Data.Monoid              ((<>))
+import           Data.Text                (pack)
+import           Database.Persist.Sqlite  (createSqlitePool, runMigration,
+                                           runSqlPersistMPool)
 import           Network.Wai.Handler.Warp (run)
 import           Servant                  (serve)
 import           System.Directory         (createDirectoryIfMissing)
+import           System.Environment
 
-import           API
-import           Persistence
-import           Types
+import           API                      (api, server)
+import           Persistence              (migrateAll)
 
 main :: IO ()
 main = do
-    createDirectoryIfMissing True "db"
-    pool <- runStderrLoggingT $ createSqlitePool "db/db.sqlite3" 5
-    flip runSqlPersistMPool pool $ do
-      runMigration migrateAll
+    mPort <- lookupEnv "PORT"
+    let port = fromMaybe 8080 (read <$> mPort)
 
-      johnId <- insert $ PersistentUser "John Doe" (Email "asd@asd.asd")
+    mDbPath <- lookupEnv "DB_PATH"
+    let dbPath = fromMaybe "./db/" mDbPath
 
-      john <- get johnId
-      liftIO $ print (john :: Maybe PersistentUser)
+    createDirectoryIfMissing True dbPath
 
-      now <- liftIO getCurrentTime
-      threadId <- insert $ PersistentThread "Thread 1" now
+    pool <- runStderrLoggingT $ createSqlitePool (pack dbPath <> "db.sqlite3") 5
+    flip runSqlPersistMPool pool $ runMigration migrateAll
 
-      commentId <- insert $ PersistentComment johnId threadId now Nothing "title" "text"
-
-      c <- get commentId
-      liftIO $ print (c :: Maybe PersistentComment)
-
-    run 8080 $ app pool
+    run port $ app pool
   where app pool = serve api $ server pool

@@ -8,6 +8,10 @@ general:
   artifacts:
     - $(stack path --local-install-root)/bin/hcomments
 
+machine:
+  services:
+    - docker
+
 dependencies:
   cache_directories:
     - "~/.stack"
@@ -16,6 +20,7 @@ dependencies:
     - echo 'deb http://download.fpcomplete.com/ubuntu precise main'|sudo tee /etc/apt/sources.list.d/fpco.list
     - sudo apt-get update && sudo apt-get install stack -y
   override:
+    - docker info
     - stack setup
     - stack build
 
@@ -24,4 +29,15 @@ test:
     - stack test
   post:
     - cp $(stack path --local-install-root)/bin/hcomments $CIRCLE_ARTIFACTS
-    
+    - cp $(stack path --local-install-root)/bin/hcomments ./
+    - docker build -t ilyamurzinov/hcomments .
+    - docker save --output=hcomments.tar ilyamurzinov/hcomments
+    - cp hcomments.tar $CIRCLE_ARTIFACTS  
+
+deployment:
+  release:
+    tag: /release-.*/
+    owner: ilya-murzinov
+    commands:
+      - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
+      - docker push ilyamurzinov/hcomments
