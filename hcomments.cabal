@@ -31,6 +31,7 @@ executable hcomments
                      , servant-server
                      , text
                      , time
+                     , transformers
                      , wai
                      , warp
   default-language:    Haskell2010

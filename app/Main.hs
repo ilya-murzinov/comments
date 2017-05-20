@@ -1,18 +1,19 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module Main where
 
 import           Control.Monad.Logger     (runStderrLoggingT)
 import           Data.Maybe               (fromMaybe)
 import           Data.Monoid              ((<>))
 import           Data.Text                (pack)
-import           Database.Persist.Sqlite  (createSqlitePool, runMigration,
-                                           runSqlPersistMPool)
+import           Database.Persist.Sqlite
 import           Network.Wai.Handler.Warp (run)
 import           Servant                  (serve)
 import           System.Directory         (createDirectoryIfMissing)
-import           System.Environment
+import           System.Environment       (lookupEnv)
 
 import           API                      (api, server)
-import           Persistence              (migrateAll)
+import           Persistence
 
 main :: IO ()
 main = do

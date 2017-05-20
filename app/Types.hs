@@ -10,15 +10,34 @@ import           Data.Aeson.TH        (defaultOptions, deriveJSON,
 import           Data.Char            (toLower)
 import           Data.Int             (Int64)
 import           Data.Text            (Text)
+import           Data.Time            (UTCTime)
 import           Database.Persist.Sql (PersistField, PersistFieldSql)
 import           GHC.Generics         (Generic)
 import           Servant
 
 newtype Email = Email Text deriving (Show, Read, FromJSON, ToJSON, PersistField, PersistFieldSql, FromHttpApiData, ToHttpApiData)
 newtype ThreadId = ThreadId Int64 deriving (Show, Read, FromJSON, ToJSON, PersistField, PersistFieldSql, FromHttpApiData, ToHttpApiData)
+newtype ThreadIdentifier = ThreadIdentifier Text deriving (Show, Read, FromJSON, ToJSON, PersistField, PersistFieldSql, FromHttpApiData, ToHttpApiData)
+
+data Thread = Thread
+  { threadId         :: Int64
+  , threadIdentifier :: Text
+  , threadTitle      :: Maybe Text
+  , threadCreated    :: UTCTime
+  }
+
+$(deriveJSON defaultOptions{ fieldLabelModifier = map toLower . drop 6 } ''Thread)
+
+data PartialThread = PartialThread
+  { partialThreadIdentifier :: Text
+  , partialThreadTitle      :: Maybe Text
+  }
+
+$(deriveJSON defaultOptions{ fieldLabelModifier = map toLower . drop 13 } ''PartialThread)
 
 data Comment = Comment
   { commentId       :: Int64
+  , commentCreated  :: UTCTime
   , commentText     :: Text
   , commentUserName :: Text
   , commentEmail    :: Email
@@ -29,7 +48,7 @@ $(deriveJSON defaultOptions{ fieldLabelModifier = map toLower . drop 7 } ''Comme
 data PartialComment = PartialComment
   { userName  :: Text
   , userEmail :: Email
-  , title     :: Text
+  , title     :: Maybe Text
   , body      :: Text
   , parentId  :: Maybe Int64
 } deriving (Show, Read, Generic)

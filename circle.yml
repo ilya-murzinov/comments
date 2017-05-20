@@ -32,7 +32,7 @@ test:
     - cp $(stack path --local-install-root)/bin/hcomments ./
     - docker build -t ilyamurzinov/hcomments .
     - docker save --output=hcomments.tar ilyamurzinov/hcomments
-    - cp hcomments.tar $CIRCLE_ARTIFACTS  
+    - cp hcomments.tar $CIRCLE_ARTIFACTS
 
 deployment:
   release:
