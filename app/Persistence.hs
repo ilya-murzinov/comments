@@ -61,18 +61,22 @@ getComments pool (ThreadId tid) = liftIO $ flip runSqlPersistMPool pool $ do
   return $ fromPair <$> pairs
   where fromPair (f, s) = fromPersistent f s
 
-addComment :: MonadIO m => ConnectionPool -> ThreadId -> PartialComment -> m Comment
+addComment :: MonadIO m => ConnectionPool -> ThreadId -> PartialComment -> m (Maybe Comment)
 addComment pool (ThreadId tid) (PartialComment n e t b mP) = liftIO $ flip runSqlPersistMPool pool $ do
   let dbtid = toSqlKey tid :: PersistentThreadId
-  let u = PersistentUser n e
-  mUser <- getBy $ UniqueEmail e
-  uid <- case mUser of
-    Just (Entity existingUid _) -> return existingUid
-    Nothing                     -> insert u
-  now <- liftIO getCurrentTime
-  let c = PersistentComment uid dbtid now (toSqlKey <$> mP) t b
-  cid <- insert c
-  return $ fromPersistent (Entity cid c) (Entity uid u)
+  mThread <- get dbtid
+  case mThread of
+    Nothing -> return Nothing
+    Just _ -> do
+      let u = PersistentUser n e
+      mUser <- getBy $ UniqueEmail e
+      uid <- case mUser of
+        Just (Entity existingUid _) -> return existingUid
+        Nothing                     -> insert u
+      now <- liftIO getCurrentTime
+      let c = PersistentComment uid dbtid now (toSqlKey <$> mP) t b
+      cid <- insert c
+      return $ Just $ fromPersistent (Entity cid c) (Entity uid u)
 
 fromPersistent :: Entity PersistentComment -> Entity PersistentUser -> Comment
 fromPersistent (Entity cid (PersistentComment _ _ c _ _ b)) (Entity _ (PersistentUser name email)) =

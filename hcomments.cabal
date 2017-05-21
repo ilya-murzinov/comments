@@ -22,6 +22,7 @@ executable hcomments
                      , Utils
   build-depends:       aeson
                      , base
+                     , bytestring
                      , directory
                      , monad-logger
                      , persistent

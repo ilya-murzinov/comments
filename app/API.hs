@@ -3,7 +3,9 @@
 
 module API where
 
-import           Database.Persist.Sql (ConnectionPool)
+import           Data.ByteString.Lazy.Char8 (pack)
+import           Data.Monoid                ((<>))
+import           Database.Persist.Sql       (ConnectionPool)
 import           Servant
 
 import           Persistence
@@ -26,12 +28,15 @@ type API = "api" :>
 api :: Proxy API
 api = Proxy
 
+threadNotExists :: String -> ServantErr
+threadNotExists tid = err404 {errBody = "Thread " <> pack tid <> " does not exist"}
+
 getThreadEndpoint :: ConnectionPool -> ThreadIdentifier -> Handler Thread
-getThreadEndpoint pool tid = do
+getThreadEndpoint pool tid@(ThreadIdentifier i) = do
   mThread <- getThread pool tid
   case mThread of
     Just thread -> return thread
-    Nothing     -> throwError err404
+    Nothing     -> throwError $ threadNotExists $ show i
 
 createThreadEndpoint :: ConnectionPool -> PartialThread -> Handler Thread
 createThreadEndpoint = createThread
@@ -40,7 +45,11 @@ getCommentsEndpoint :: ConnectionPool -> ThreadId -> Handler [Comment]
 getCommentsEndpoint = getComments
 
 addCommentEndpoint :: ConnectionPool -> ThreadId -> PartialComment -> Handler Comment
-addCommentEndpoint = addComment
+addCommentEndpoint pool tid@(ThreadId i) c = do
+  mComment <- addComment pool tid c
+  case mComment of
+    Just comment -> return comment
+    Nothing      -> throwError $ threadNotExists $ show i
 
 server :: ConnectionPool -> Server API
 server pool = getThreadEndpoint pool
