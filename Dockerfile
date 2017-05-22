@@ -1,12 +1,5 @@
-FROM ubuntu:14.04
+FROM ilyamurzinov/integer-gmp-gcc
 
-RUN apt-get update && apt-get install -y libgmp-dev
+ADD target/hcomments /usr/bin/
 
-RUN useradd -m runner
-
-ADD hcomments /home/runner/
-RUN chmod +x /home/runner/hcomments
-
-USER runner
-WORKDIR /home/runner/
-CMD ["/home/runner/hcomments"]
+CMD hcomments
