@@ -5,8 +5,6 @@ general:
   branches:
     only:
       - master
-  artifacts:
-    - $(stack path --local-install-root)/bin/hcomments
 
 machine:
   services:
@@ -28,11 +26,9 @@ test:
   override:
     - stack test
   post:
-    - cp $(stack path --local-install-root)/bin/hcomments $CIRCLE_ARTIFACTS
-    - cp $(stack path --local-install-root)/bin/hcomments ./
-    - docker build -t ilyamurzinov/hcomments .
-    - docker save --output=hcomments.tar ilyamurzinov/hcomments
-    - cp hcomments.tar $CIRCLE_ARTIFACTS
+    - make
+    - cp target/hcomments $CIRCLE_ARTIFACTS
+    - cp target/hcomments.tar $CIRCLE_ARTIFACTS
 
 deployment:
   release:
@@ -40,4 +36,4 @@ deployment:
     owner: ilya-murzinov
     commands:
       - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
-      - docker push ilyamurzinov/hcomments
+      - make push
