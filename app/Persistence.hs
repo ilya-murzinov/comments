@@ -12,10 +12,10 @@
 
 module Persistence where
 
-import           Control.Monad.IO.Class  (MonadIO, liftIO)
-import           Data.Text               (Text)
-import           Data.Time               (UTCTime, getCurrentTime)
-import           Database.Persist.Sqlite
+import           Control.Monad.IO.Class      (MonadIO, liftIO)
+import           Data.Text                   (Text)
+import           Data.Time                   (UTCTime, getCurrentTime)
+import           Database.Persist.Postgresql
 import           Database.Persist.TH
 
 import           Types

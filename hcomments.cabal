@@ -27,7 +27,7 @@ executable hcomments
                      , monad-logger
                      , persistent
                      , persistent-template
-                     , persistent-sqlite
+                     , persistent-postgresql
                      , servant
                      , servant-server
                      , text

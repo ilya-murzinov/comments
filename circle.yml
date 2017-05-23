@@ -20,15 +20,12 @@ dependencies:
   override:
     - docker info
     - stack setup
-    - stack build
 
 test:
   override:
-    - stack test
-  post:
+    - stack setup
     - make
-    - cp target/hcomments $CIRCLE_ARTIFACTS
-    - cp target/hcomments.tar $CIRCLE_ARTIFACTS
+    - stack test
 
 deployment:
   release:
