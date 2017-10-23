@@ -20,11 +20,11 @@ dependencies:
   override:
     - docker info
     - stack setup
+    - make
+    - stack test --no-run-tests
 
 test:
   override:
-    - stack setup
-    - make
     - stack test
 
 deployment:
