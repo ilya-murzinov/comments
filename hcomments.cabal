@@ -25,6 +25,8 @@ library
                      , base
                      , bytestring
                      , directory
+                     , postgresql-simple
+                     , postgresql-simple-migration
                      , servant
                      , servant-server
                      , text

@@ -1,16 +1,27 @@
--- {-# LANGUAGE DeriveGeneric              #-}
--- {-# LANGUAGE EmptyDataDecls             #-}
--- {-# LANGUAGE FlexibleContexts           #-}
--- {-# LANGUAGE FlexibleInstances          #-}
--- {-# LANGUAGE GADTs                      #-}
--- {-# LANGUAGE GeneralizedNewtypeDeriving #-}
--- {-# LANGUAGE MultiParamTypeClasses      #-}
--- {-# LANGUAGE OverloadedStrings          #-}
--- {-# LANGUAGE QuasiQuotes                #-}
--- {-# LANGUAGE TemplateHaskell            #-}
--- {-# LANGUAGE TypeFamilies               #-}
-
 module Persistence where
+
+import           Control.Monad                        (void)
+import           Control.Monad.IO.Class               (MonadIO, liftIO)
+import           Data.ByteString.Char8                (pack)
+import           Database.PostgreSQL.Simple
+import           Database.PostgreSQL.Simple.FromRow
+import           Database.PostgreSQL.Simple.Migration
+
+import           Types
+import           Utils
+
+instance FromRow Thread where
+    fromRow = Thread <$> field <*> field <*> field
+
+runDBMigration :: String -> IO ()
+runDBMigration connStr = void $ do
+    conn <- connectPostgreSQL $ pack connStr
+    runMigration $ MigrationContext (MigrationDirectory "./db/migration") True conn
+
+getThread :: MonadIO m => Connection -> ThreadId -> m (Maybe Thread)
+getThread conn (ThreadId tid) = liftIO $ Just <$> do
+    [t@Thread{}] <- query_ conn "select a,b,c from threads"
+    return t
 
 -- import           Control.Monad.IO.Class      (MonadIO, liftIO)
 -- import           Data.Text                   (Text)

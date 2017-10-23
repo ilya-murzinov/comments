@@ -1,14 +1,14 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Main where
-
 import           Data.Maybe                   (fromMaybe)
 import           Database.PostgreSQL.Embedded (DBConfig (..),
                                                StartupConfig (..), Version (..),
                                                startPostgres)
 import           System.Environment           (lookupEnv)
 
-import           Server                       (startServer)
+import           Persistence
+import           Server
 
 main :: IO ()
 main = do
@@ -25,5 +25,7 @@ main = do
         return ()
 
     let dbConnection = fromMaybe "host=127.0.0.1 user=postgres dbname=postgres port=46782" mDbConnection
+
+    runDBMigration dbConnection
 
     startServer port dbConnection
