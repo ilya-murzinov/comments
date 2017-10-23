@@ -5,9 +5,7 @@ jobs:
       branches:
         only: master
     working_directory: ~/hcomments
-    machine:
-      services:
-        - docker
+    machine: true
     steps:
       - checkout
       - restore_cache:
@@ -28,19 +26,10 @@ jobs:
             - ~/.postgres-emedded
           key: hcomments-{{ checksum "hcomments.cabal" }}
           
-  deploy:
-    commands: |
-      docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
-      make push
-
-workflows:
-  version: 2
-  build:
-    jobs:
-      - build
-  deploy:
-    jobs:
-      - build:
-          filters:
-            tags: /release-.*/
-      - deploy
+  # deploy:
+  #   filters:
+  #     tags: /release-.*/
+  #   steps:
+  #     - run: |
+  #         docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
+  #         make push
