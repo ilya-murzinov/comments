@@ -22,11 +22,11 @@ main = do
 
     let getThread :<|> createThread :<|> _ :<|> _ = client api
     let queries = do
-            _ <- createThread $ PartialThread "test" $ Just "test title"
-            getThread $ ThreadIdentifier "test"
+            _ <- createThread $ PartialThread $ Just "test title"
+            getThread $ ThreadId 1
 
     manager <- newManager defaultManagerSettings
-    err <- execute manager (getThread $ ThreadIdentifier "test")
+    err <- execute manager (getThread $ ThreadId 1)
     print err
     res <- execute manager queries
     print res

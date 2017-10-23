@@ -19,15 +19,12 @@ library
                      , Types
                      , Persistence
                      , Server
+                     , Service
                      , Utils
   build-depends:       aeson
                      , base
                      , bytestring
                      , directory
-                     , monad-logger
-                     , persistent
-                     , persistent-template
-                     , persistent-postgresql
                      , servant
                      , servant-server
                      , text
@@ -47,9 +44,6 @@ executable hcomments
                      , bytestring
                      , directory
                      , monad-logger
-                     , persistent
-                     , persistent-template
-                     , persistent-postgresql
                      , postgres-embedded
                      , servant
                      , servant-server

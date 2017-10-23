@@ -5,17 +5,16 @@ module API where
 
 import           Data.ByteString.Lazy.Char8 (pack)
 import           Data.Monoid                ((<>))
-import           Database.Persist.Sql       (ConnectionPool)
 import           Servant
 
-import           Persistence
+import           Service
 import           Types
 
 type TID = Capture "threadId" ThreadId
 type GetCommentsEndpoint = TID :> Get '[JSON] [Comment]
 type PostCommentEndpoint = TID :> ReqBody '[JSON] PartialComment :>
                                   PostCreated '[JSON] Comment
-type GetThreadEndpoint = Capture "threadIdentifier" ThreadIdentifier :> Get '[JSON] Thread
+type GetThreadEndpoint = Capture "threadId" ThreadId :> Get '[JSON] Thread
 type CreateThreadEndpoint = ReqBody '[JSON] PartialThread :> PostCreated '[JSON] Thread
 
 type API = "api" :>
@@ -31,28 +30,28 @@ api = Proxy
 threadNotExists :: String -> ServantErr
 threadNotExists tid = err404 {errBody = "Thread " <> pack tid <> " does not exist"}
 
-getThreadEndpoint :: ConnectionPool -> ThreadIdentifier -> Handler Thread
-getThreadEndpoint pool tid@(ThreadIdentifier i) = do
-  mThread <- getThread pool tid
+getThreadEndpoint :: ThreadId -> Handler Thread
+getThreadEndpoint tid@(ThreadId i) = do
+  mThread <- getThread tid
   case mThread of
     Just thread -> return thread
     Nothing     -> throwError $ threadNotExists $ show i
 
-createThreadEndpoint :: ConnectionPool -> PartialThread -> Handler Thread
+createThreadEndpoint :: PartialThread -> Handler Thread
 createThreadEndpoint = createThread
 
-getCommentsEndpoint :: ConnectionPool -> ThreadId -> Handler [Comment]
+getCommentsEndpoint :: ThreadId -> Handler [Comment]
 getCommentsEndpoint = getComments
 
-addCommentEndpoint :: ConnectionPool -> ThreadId -> PartialComment -> Handler Comment
-addCommentEndpoint pool tid@(ThreadId i) c = do
-  mComment <- addComment pool tid c
+addCommentEndpoint :: ThreadId -> PartialComment -> Handler Comment
+addCommentEndpoint tid@(ThreadId i) c = do
+  mComment <- addComment tid c
   case mComment of
     Just comment -> return comment
     Nothing      -> throwError $ threadNotExists $ show i
 
-server :: ConnectionPool -> Server API
-server pool = getThreadEndpoint pool
-         :<|> createThreadEndpoint pool
-         :<|> getCommentsEndpoint pool
-         :<|> addCommentEndpoint pool
+server :: Server API
+server = getThreadEndpoint
+         :<|> createThreadEndpoint
+         :<|> getCommentsEndpoint
+         :<|> addCommentEndpoint
