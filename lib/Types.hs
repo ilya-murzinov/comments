@@ -24,14 +24,14 @@ data Thread = Thread
   , threadIdentifier :: Text
   , threadTitle      :: Maybe Text
   , threadCreated    :: UTCTime
-  }
+  } deriving (Show, Read)
 
 $(deriveJSON defaultOptions{ fieldLabelModifier = map toLower . drop 6 } ''Thread)
 
 data PartialThread = PartialThread
   { partialThreadIdentifier :: Text
   , partialThreadTitle      :: Maybe Text
-  }
+  } deriving (Show, Read)
 
 $(deriveJSON defaultOptions{ fieldLabelModifier = map toLower . drop 13 } ''PartialThread)
 

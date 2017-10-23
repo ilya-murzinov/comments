@@ -2,18 +2,13 @@
 
 module Main where
 
-import           Control.Monad.Logger         (runStderrLoggingT)
-import           Data.ByteString.Char8        (pack)
 import           Data.Maybe                   (fromMaybe)
-import           Database.Persist.Postgresql  (createPostgresqlPool,
-                                               runMigration, runSqlPersistMPool)
-import           Database.PostgreSQL.Embedded
-import           Network.Wai.Handler.Warp     (run)
-import           Servant                      (serve)
+import           Database.PostgreSQL.Embedded (DBConfig (..),
+                                               StartupConfig (..), Version (..),
+                                               startPostgres)
 import           System.Environment           (lookupEnv)
 
-import           API                          (api, server)
-import           Persistence
+import           Server                       (startServer)
 
 main :: IO ()
 main = do
@@ -29,10 +24,6 @@ main = do
         _ <- startPostgres sConfig dConfig
         return ()
 
-    let dbConnection = pack $ fromMaybe "host=127.0.0.1 user=postgres dbname=postgres port=46782" mDbConnection
+    let dbConnection = fromMaybe "host=127.0.0.1 user=postgres dbname=postgres port=46782" mDbConnection
 
-    pool <- runStderrLoggingT $ createPostgresqlPool dbConnection 5
-    flip runSqlPersistMPool pool $ runMigration migrateAll
-
-    run port $ app pool
-  where app pool = serve api $ server pool
+    startServer port dbConnection
