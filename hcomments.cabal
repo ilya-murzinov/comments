@@ -28,6 +28,7 @@ executable hcomments
                      , persistent
                      , persistent-template
                      , persistent-postgresql
+                     , postgres-embedded
                      , servant
                      , servant-server
                      , text

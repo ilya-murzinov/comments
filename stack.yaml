@@ -1,6 +1,10 @@
-resolver: lts-8.13
+resolver: lts-9.6
 packages:
 - '.'
-extra-deps: []
+
+extra-deps:
+- shell-conduit-4.6.1
+- postgres-embedded-0.1.7
+
 flags: {}
 extra-package-dbs: []
