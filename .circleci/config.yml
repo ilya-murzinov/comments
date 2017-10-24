@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  build:
+  build-and-test:
     filters:
       branches:
         only: master
@@ -17,17 +17,14 @@ jobs:
       - run: |
           docker info
           stack setup
-      - run: make
-
-  test:
-    machine: true
-    steps:
-      - run: stack test
+      - run: |
+          make
+          stack test
       - save_cache:
-          paths:
-            - ~/.stack
-            - ~/.postgres-emedded
-          key: hcomments-{{ checksum "hcomments.cabal" }}
+        paths:
+          - ~/.stack
+          - ~/.postgres-emedded
+        key: hcomments-{{ checksum "hcomments.cabal" }}
           
   deploy:
     machine: true
@@ -40,10 +37,7 @@ workflows:
   version: 2
   build-test-and-deploy:
     jobs:
-      - build
-      - test:
-          requires:
-            - build
+      - build-and-test
       - deploy:
           requires:
             - test
