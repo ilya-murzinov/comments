@@ -18,16 +18,16 @@ jobs:
           docker info
           stack setup
       - run: make
-      - save_cache:
-          paths:
-            - ~/.stack
-            - ~/.postgres-emedded
-          key: hcomments-{{ checksum "hcomments.cabal" }}
 
   test:
     machine: true
     steps:
       - run: stack test
+      - save_cache:
+          paths:
+            - ~/.stack
+            - ~/.postgres-emedded
+          key: hcomments-{{ checksum "hcomments.cabal" }}
           
   deploy:
     machine: true
