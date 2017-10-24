@@ -49,5 +49,5 @@ workflows:
             - test
           filters:
             tags: 
-              - only: /release-.*/
+              only: /release-.*/
           
