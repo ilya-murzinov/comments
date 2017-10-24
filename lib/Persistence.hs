@@ -16,6 +16,7 @@ instance FromRow Thread where
 runDBMigration :: String -> IO ()
 runDBMigration connStr = void $ do
     conn <- connectPostgreSQL $ pack connStr
+    _ <- runMigration $ MigrationContext MigrationInitialization True conn
     runMigration $ MigrationContext (MigrationDirectory "./db/migration") True conn
 
 getThread :: MonadIO m => Connection -> ThreadId -> m (Maybe Thread)

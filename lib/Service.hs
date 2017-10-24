@@ -4,6 +4,7 @@ import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.Text              (Text)
 import           Data.Time              (UTCTime, getCurrentTime)
 
+import           Persistence
 import           Types
 
 getThread :: ThreadId -> m (Maybe Thread)
