@@ -40,7 +40,7 @@ workflows:
       - build-and-test
       - deploy:
           requires:
-            - test
+            - build-and-test
           filters:
             tags: 
               only: /release-.*/
