@@ -17,19 +17,35 @@ jobs:
       - run: |
           docker info
           stack setup
-      - run: |
-          make
-          stack test
+      - run: make
       - save_cache:
           paths:
             - ~/.stack
             - ~/.postgres-emedded
           key: hcomments-{{ checksum "hcomments.cabal" }}
+
+  test:
+    machine: true
+    steps:
+      - run: stack test
           
-  # deploy:
-  #   filters:
-  #     tags: /release-.*/
-  #   steps:
-  #     - run: |
-  #         docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
-  #         make push
+  deploy:
+    machine: true
+    steps:
+      - run: |
+          docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
+          make push
+
+workflows:
+  version: 2
+  build-test-and-deploy:
+    jobs:
+      - build
+      - test:
+        requires:
+          - build
+      - deploy:
+        filter:
+          tags: /release-.*/
+        requires:
+          - test
