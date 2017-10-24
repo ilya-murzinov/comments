@@ -1,8 +1,14 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Persistence where
 
 import           Control.Monad                        (void)
 import           Control.Monad.IO.Class               (MonadIO, liftIO)
-import           Data.ByteString.Char8                (pack)
+import qualified Data.ByteString                      as BS
+import           Data.FileEmbed                       (embedDir)
+import           Data.Foldable                        (forM_)
+import           Data.Function                        (on)
+import           Data.List                            (sortBy)
 import           Database.PostgreSQL.Simple
 import           Database.PostgreSQL.Simple.FromRow
 import           Database.PostgreSQL.Simple.Migration
@@ -13,15 +19,35 @@ import           Utils
 instance FromRow Thread where
     fromRow = Thread <$> field <*> field <*> field
 
-runDBMigration :: String -> IO ()
-runDBMigration connStr = void $ do
-    conn <- connectPostgreSQL $ pack connStr
-    _ <- runMigration $ MigrationContext MigrationInitialization True conn
-    runMigration $ MigrationContext (MigrationDirectory "./db/migration") True conn
+sortedMigrations :: [(FilePath, BS.ByteString)]
+sortedMigrations =
+    let unsorted = $(embedDir "db/migrations")
+    in sortBy (compare `on` fst) unsorted
+
+runMigrations :: Connection -> IO ()
+runMigrations conn =
+  do
+    let defaultContext =
+          MigrationContext
+          { migrationContextCommand = MigrationInitialization
+          , migrationContextVerbose = False
+          , migrationContextConnection = conn
+          }
+        migrations = ("(init)", defaultContext) :
+                     [
+                        (k, defaultContext
+                            { migrationContextCommand =
+                                MigrationScript k v
+                            })
+                        | (k, v) <- sortedMigrations
+                     ]
+    forM_ migrations $ \(migrDescr, migr) -> do
+      res <- runMigration migr
+      return ()
 
 getThread :: MonadIO m => Connection -> ThreadId -> m (Maybe Thread)
 getThread conn (ThreadId tid) = liftIO $ Just <$> do
-    [t@Thread{}] <- query_ conn "select a,b,c from threads"
+    [t@Thread{}] <- query_ conn "select id, title, created from threads"
     return t
 
 -- import           Control.Monad.IO.Class      (MonadIO, liftIO)
