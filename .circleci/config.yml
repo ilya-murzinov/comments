@@ -46,6 +46,7 @@ workflows:
           - build
       - deploy:
         filter:
-          tags: /release-.*/
+          tags: 
+            - only: /release-.*/
         requires:
           - test
