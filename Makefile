@@ -10,4 +10,5 @@ clean:
 	@rm -rf target
 
 push:
+	docker build -t ilyamurzinov/hcomments .
 	docker push ilyamurzinov/hcomments

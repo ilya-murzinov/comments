@@ -9,7 +9,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: hcomments-{{ checksum "hcomments.cabal" }}
+          key: hcomments-{{ checksum "hcomments.cabal" }}-{{ checksum "stack.yaml" }}
       - run: |
           sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 575159689BEFB442
           echo 'deb http://download.fpcomplete.com/ubuntu precise main'|sudo tee /etc/apt/sources.list.d/fpco.list
@@ -18,13 +18,15 @@ jobs:
           docker info
           stack setup
       - run: |
-          make
+          make build
           stack test
       - save_cache:
-        paths:
-          - ~/.stack
-          - ~/.postgres-emedded
-        key: hcomments-{{ checksum "hcomments.cabal" }}
+          paths:
+            - ~/.stack
+            - ~/.postgres-emedded
+          key: hcomments-{{ checksum "hcomments.cabal" }}-{{ checksum "stack.yaml" }}
+      - store_artifacts:
+          path: ./target
           
   deploy:
     machine: true
@@ -44,4 +46,6 @@ workflows:
           filters:
             tags: 
               only: /release-.*/
+            branches:
+              ignore: /.*/
           
