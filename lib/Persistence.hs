@@ -1,20 +1,39 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Persistence where
+module Persistence
+    ( createDefaultPool
+    , runMigrations
+    , getThread
+    ) where
 
 import           Control.Monad                        (void)
 import           Control.Monad.IO.Class               (MonadIO, liftIO)
-import qualified Data.ByteString                      as BS
+import qualified Data.ByteString.Char8                as BS
 import           Data.FileEmbed                       (embedDir)
 import           Data.Foldable                        (forM_)
 import           Data.Function                        (on)
 import           Data.List                            (sortBy)
-import           Database.PostgreSQL.Simple
+import           Data.Monoid                          ((<>))
+import           Data.Pool                            (Pool, createPool,
+                                                       withResource)
+import           Database.PostgreSQL.Simple           (Connection,
+                                                       connectPostgreSQL,
+                                                       query_)
 import           Database.PostgreSQL.Simple.FromRow
-import           Database.PostgreSQL.Simple.Migration
+import           Database.PostgreSQL.Simple.Migration (MigrationCommand (..),
+                                                       MigrationContext (..),
+                                                       MigrationResult (..),
+                                                       runMigration)
+import           System.Exit                          (exitFailure)
+import           System.Log.Logger
 
 import           Types
 import           Utils
+
+comp = "HComments.Persistence"
+
+createDefaultPool :: String -> IO (Pool Connection)
+createDefaultPool connStr = createPool (connectPostgreSQL $ BS.pack connStr) (\_ -> return ()) 1 5 1
 
 instance FromRow Thread where
     fromRow = Thread <$> field <*> field <*> field
@@ -24,9 +43,10 @@ sortedMigrations =
     let unsorted = $(embedDir "db/migrations")
     in sortBy (compare `on` fst) unsorted
 
-runMigrations :: Connection -> IO ()
-runMigrations conn =
+runMigrations :: Pool Connection -> IO ()
+runMigrations pool = withResource pool $ \conn ->
   do
+    warningM comp $ "Applying migrations..."
     let defaultContext =
           MigrationContext
           { migrationContextCommand = MigrationInitialization
@@ -42,11 +62,16 @@ runMigrations conn =
                         | (k, v) <- sortedMigrations
                      ]
     forM_ migrations $ \(migrDescr, migr) -> do
-      res <- runMigration migr
-      return ()
+        warningM comp $ "Applying migration " <> migrDescr
+        res <- runMigration migr
+        case res of
+            MigrationSuccess -> return ()
+            MigrationError reason -> do
+                errorM comp $ "Migration failed: " <> reason
+                exitFailure
 
-getThread :: MonadIO m => Connection -> ThreadId -> m (Maybe Thread)
-getThread conn (ThreadId tid) = liftIO $ Just <$> do
+getThread :: MonadIO m => Pool Connection -> ThreadId -> m (Maybe Thread)
+getThread pool (ThreadId tid) = liftIO $ withResource pool $ \conn -> Just <$> do
     [t@Thread{}] <- query_ conn "select id, title, created from threads"
     return t
 

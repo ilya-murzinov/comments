@@ -2,14 +2,15 @@
 
 module Server where
 
+import           Data.Pool                  (Pool)
 import           Database.PostgreSQL.Simple (Connection)
 import           Network.Wai.Handler.Warp   (run)
-import           Servant                    (serve)
+import           Servant
 
-import           API                        (api, server)
+import           API
 import           Persistence
 
-startServer :: Integer -> Connection -> IO ()
-startServer port conn = do
-    runMigrations conn
+startServer :: Integer -> Pool Connection -> IO ()
+startServer port pool = do
+    runMigrations pool
     run (fromInteger port) $ serve api server

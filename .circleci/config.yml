@@ -9,7 +9,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: hcomments-{{ checksum "hcomments.cabal" }}-{{ checksum "stack.yaml" }}
+          key: hcomments
       - run: |
           sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 575159689BEFB442
           echo 'deb http://download.fpcomplete.com/ubuntu precise main'|sudo tee /etc/apt/sources.list.d/fpco.list
@@ -24,7 +24,7 @@ jobs:
           paths:
             - ~/.stack
             - ~/.postgres-emedded
-          key: hcomments-{{ checksum "hcomments.cabal" }}-{{ checksum "stack.yaml" }}
+          key: hcomments
       - store_artifacts:
           path: ./target
           

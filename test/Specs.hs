@@ -2,15 +2,15 @@ import           Control.Concurrent           (forkIO, threadDelay)
 import           Database.PostgreSQL.Embedded (DBConfig (..),
                                                StartupConfig (..), Version (..),
                                                startPostgres, stopPostgres)
-import           Database.PostgreSQL.Simple   (connectPostgreSQL)
 import           Network.HTTP.Client          (Manager, defaultManagerSettings,
                                                newManager)
 import           Servant.API
 import           Servant.Client
 
 
-import           API                          (api)
-import           Server                       (startServer)
+import           API
+import           Persistence
+import           Server
 import           Types
 
 main :: IO ()
@@ -18,17 +18,20 @@ main = do
     let sConfig = StartupConfig True (Version "9.6.5-1")
     let dConfig = DBConfig 46782 "postgres"
     rc <- startPostgres sConfig dConfig
-    conn <- connectPostgreSQL "host=127.0.0.1 user=postgres dbname=postgres port=46782"
-    _ <- forkIO $ startServer 8081 conn
+
+    let dbConnection = "host=127.0.0.1 user=postgres dbname=postgres port=46782"
+    pool <- createDefaultPool dbConnection
+
+    _ <- forkIO $ startServer 8081 pool
     threadDelay 200000
 
-    let getThread :<|> createThread :<|> _ :<|> _ = client api
+    let getThreadE :<|> createThreadE :<|> _ :<|> _ = client api
     let queries = do
-            _ <- createThread $ PartialThread $ Just "test title"
-            getThread $ ThreadId 1
+            _ <- createThreadE $ PartialThread $ Just "test title"
+            getThreadE $ ThreadId 1
 
     manager <- newManager defaultManagerSettings
-    err <- execute manager (getThread $ ThreadId 1)
+    err <- execute manager (getThreadE $ ThreadId 1)
     print err
     res <- execute manager queries
     print res
