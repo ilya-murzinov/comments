@@ -25,7 +25,7 @@ main = do
     _ <- forkIO $ startServer 8081 pool
     threadDelay 200000
 
-    let getThreadE :<|> createThreadE :<|> _ :<|> _ = client api
+    let (getThreadE :<|> createThreadE) :<|> (_ :<|> _) = client api
     let queries = do
             _ <- createThreadE $ PartialThread $ Just "test title"
             getThreadE $ ThreadId 1

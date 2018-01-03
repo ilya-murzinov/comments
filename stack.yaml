@@ -3,5 +3,9 @@ packages:
 - '.'
 extra-deps:
 - postgres-embedded-0.1.8
+- servant-0.12
+- servant-client-0.12
+- servant-server-0.12
+- servant-client-core-0.12
 flags: {}
 extra-package-dbs: []

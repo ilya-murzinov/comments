@@ -19,7 +19,6 @@ library
                      , Types
                      , Persistence
                      , Server
-                     , Service
                      , Utils
   build-depends:       aeson
                      , base
